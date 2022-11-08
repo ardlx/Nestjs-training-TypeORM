@@ -24,6 +24,7 @@ import { Response, Request } from 'express'
 
 @ApiTags('Product')
 @Controller('products')
+//extends to global HTTP status and response message
 export class ProductController extends BaseController{
     constructor(private productService: ProductService){
       super()
@@ -31,7 +32,7 @@ export class ProductController extends BaseController{
     //dependency injection : sample to call function from service
 
         @Post()
-        async addProduct(
+        async create(
           @Body() data: CreateProductDto,
           @Res() res: Response ){
             const result = await this.productService.insertProduct(data)
@@ -39,15 +40,20 @@ export class ProductController extends BaseController{
           }
       
         @Get()
-        async getAllProducts(@Res() res: Response) {
-          const result = await this.productService.getProducts()
+        async getAll(@Res() res: Response) {
+          const result = await this.productService.getProducts({
+              order: {
+                price: 'DESC' // sample condition
+            }
+          })
             return this.retrievedResponse(res, result)
           }
       
         @Get(':prodId')
-        async getProduct(
+        async getSingle(
           @Param('prodId') prodId: string, 
           @Res() res: Response) {
+            
             const result = await this.productService.getSingleProduct(prodId)
             if(!result) throw new HttpException('Product Not Found!', HttpStatus.BAD_REQUEST)
 
@@ -55,17 +61,16 @@ export class ProductController extends BaseController{
           }
       
         @Patch(':prodId')
-        async updateProduct(
+        async update(
           @Param('prodId') prodId: string,
           @Body() updateProductDto: UpdateProductDto,
           @Res() res: Response){
             const result = await this.productService.updateProduct(prodId, updateProductDto)
-            console.log(result)
             return this.updatedResponse(res, result)
           }
       
         @Delete(':prodId')
-        async removeProduct(
+        async delete(
           @Param('prodId') prodId: string,
           @Res() res: Response){
             await this.productService.deleteProduct(prodId)
